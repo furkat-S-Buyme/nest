@@ -1,6 +1,4 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post } from "@nestjs/common";
-import { ProductModule } from "../product/product.module";
-import { FindProductDto } from "../product/dto/find-product.dto";
 import { TopPageModel } from "./top-page.model";
 import { FindTopPageDto } from "./dto/find-top-page.dto";
 
