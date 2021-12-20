@@ -18,11 +18,16 @@ import { CreateTopPageDto } from './dto/create-top-page.dto';
 import { FindTopPageDto } from './dto/find-top-page.dto';
 import { NOT_FOUND_TOP_PAGE_ERROR } from './top-page.constants';
 import { TopPageService } from './top-page.service';
+import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
+import { HhService } from '../hh/hh.service';
 
 @Controller('top-page')
 export class TopPageController {
-	constructor(private readonly topPageService: TopPageService) {
-	}
+	constructor(
+		private readonly topPageService: TopPageService,
+		private readonly hhService: HhService,
+		private readonly scheduleRegistry: SchedulerRegistry
+	) { }
 
 	@UseGuards(JwtAuthGuard)
 	@Post('create')
@@ -73,5 +78,15 @@ export class TopPageController {
 	@Post('find')
 	async find(@Body() dto: FindTopPageDto) {
 		return this.topPageService.findByCategory(dto.firstCategory);
+	}
+
+	@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+	async test() {
+		const data = await this.topPageService.findForHhUpdate(new Date());
+		for (const page of data) {
+			const hhData = await this.hhService.getData(page.category);
+			page.hh = hhData;
+			await this.topPageService.updateById(page._id, page);
+		}
 	}
 }
